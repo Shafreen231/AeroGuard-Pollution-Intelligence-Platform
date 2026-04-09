@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing API...</p>';
+            
+            try {
+                // Test individual endpoints
+                const endpoints = [
+                    { name: 'Latest Readings', url: 'http://localhost:8000/api/monitoring/readings/latest/' },
+                    { name: 'Pollution Zones', url: 'http://localhost:8000/api/monitoring/zones/' },
+                    { name: 'Vehicles', url: 'http://localhost:8000/api/vehicles/vehicles/' },
+                    { name: 'Latest Predictions', url: 'http://localhost:8000/api/ml/predictions/latest/' }
+                ];
+                
+                let html = '<h2>API Test Results:</h2>';
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        console.log(`Testing ${endpoint.name}...`);
+                        const response = await fetch(endpoint.url);
+                        console.log(`${endpoint.name}: ${response.status}`);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            const count = Array.isArray(data) ? data.length : (data.results ? data.results.length : 'N/A');
+                            html += `<p>✅ ${endpoint.name}: ${response.status} (${count} items)</p>`;
+                        } else {
+                            const text = await response.text();
+                            html += `<p>❌ ${endpoint.name}: ${response.status} - ${text.substring(0, 100)}</p>`;
+                        }
+                    } catch (error) {
+                        console.error(`Error testing ${endpoint.name}:`, error);
+                        html += `<p>❌ ${endpoint.name}: Error - ${error.message}</p>`;
+                    }
+                }
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('General error:', error);
+                resultsDiv.innerHTML = `<p>❌ General Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
